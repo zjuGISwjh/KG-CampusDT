@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: campus
+  neo4j:
+    authentication:
+      #use your username and password
+      username: your_username
+      password: your_password
+    uri: bolt://localhost:7687
+server:
+  port: 8083
+  servlet:
+    context-path: /api
+
