@@ -15,8 +15,19 @@ public class Neo4jServiceImpl implements Neo4jService {
     @Autowired
     private Neo4jRepository neo4jRepository;
 
+    @Override
     public ArrayList<String> getAllLabel(){
         return neo4jRepository.getAllLabels();
+    }
+
+    @Override
+    public List<Map<String,Object>> getNodeByLabel(String label){
+        return neo4jRepository.getNodeByLabel(label);
+    }
+
+    @Override
+    public JSONObject getNodeAndGeometryByLabel(String label){
+        return neo4jRepository.getNodeAndGeometryByLabel(label);
     }
 
     @Override
@@ -24,18 +35,32 @@ public class Neo4jServiceImpl implements Neo4jService {
         return neo4jRepository.getAllRelationshipType();
     }
 
+    @Override
+    public List<Map<String, Object>> getSingleNode(String label,String id){
+        return neo4jRepository.getSingleNode(label,id);
+    }
+
+    @Override
     public List<Map<String,Object>> getNode(String nodeType, Map<String, String> parameters) {
         return neo4jRepository.getNode(nodeType,parameters);
     }
 
+    @Override
     public List<Map<String, Object>> getSubGraphA(String label,String id){
         return neo4jRepository.getSubGraphA(label,id);
     }
 
+    @Override
+    public List<Map<String, Object>> getGeometry(String label,String id){
+        return neo4jRepository.getGeometry(label,id);
+    }
+
+    @Override
     public List<Map<String,Object>> getBusStopByRoute(String route){
         return neo4jRepository.getBusStopByRoute(route);
     }
 
+    @Override
     public List<Map<String,Object>> getNextStop(String busStopId){
         return neo4jRepository.getNextStop(busStopId);
     }

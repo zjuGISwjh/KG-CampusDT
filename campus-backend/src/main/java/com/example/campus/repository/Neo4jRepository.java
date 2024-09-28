@@ -47,6 +47,51 @@ public class Neo4jRepository {
         return finalResult;
     }
 
+    public List<Map<String,Object>> getNodeByLabel(String label){
+        ArrayList<Map<String, Object>> finalResult=new ArrayList();
+        Session session = driver.session();
+        String cql="MATCH (n:"+label+") RETURN n";
+        Result result = session.run(cql);
+
+        while (result.hasNext()) {
+            Record record = result.next();
+            finalResult.add(record.get("n").asMap());
+        }
+
+        return finalResult;
+    }
+
+    //get the geometry and properties, construct into geojson
+    public static JSONObject getNodeAndGeometryByLabel(String label){
+        //ArrayList<Map<String, Object>> finalResult=new ArrayList();
+        JSONObject finalResult=new JSONObject();
+        ArrayList<Map<String, Object>> features=new ArrayList();
+        String labelid=label+"_id";
+        Session session = driver.session();
+        /*String cql = "MATCH (a:"+label+") " +
+                "OPTIONAL MATCH (a)-[:has_geometry]->(b) " +
+                "RETURN a, b";*/
+        String cql="MATCH (a:"+label+") " +
+                "OPTIONAL MATCH (a)-[:has_geometry]->(b:"+label+"_geometry) " +
+                "WITH a, b, apoc.convert.fromJsonList(b.coordinates) AS parsedCoordinates " +
+                "RETURN a {    .*}, b {    .*, coordinates: parsedCoordinates};";
+        System.out.println(cql);
+        Result result = session.run(cql);
+
+        while (result.hasNext()) {
+            Record record = result.next();
+            Map<String, Object> pair = new HashMap<>();
+            pair.put("type","Feature");
+            pair.put("id",record.get("a").asMap().get(labelid));
+            pair.put("properties", record.get("a").asMap());
+            pair.put("geometry", record.get("b").asMap());
+            features.add(pair);
+        }
+        finalResult.put("type","FeatureCollection");
+        finalResult.put("features",features);
+        return finalResult;
+    }
+
     //get all relationTypes
     public static ArrayList<String> getAllRelationshipType(){
         ArrayList<String> finalResult=new ArrayList();
@@ -58,6 +103,21 @@ public class Neo4jRepository {
             Record record = result.next();
             JSONObject jsonObject = recordToJson(record);
             finalResult.add(jsonObject.get("relationshipType").toString());
+        }
+        return finalResult;
+    }
+
+    public static List<Map<String, Object>> getSingleNode(String label,String id){
+
+        ArrayList<Map<String, Object>> finalResult=new ArrayList();
+        String labelid=label+"_id";
+        String cql = "MATCH (n:"+label+" {"+labelid+": $id}) RETURN n";
+
+        Session session = driver.session();
+        Result result = session.run(cql,parameters("label", label, "id", id));
+        while (result.hasNext()) {
+            Record record = result.next();
+            finalResult.add(record.get("n").asMap());
         }
         return finalResult;
     }
@@ -130,6 +190,21 @@ public class Neo4jRepository {
             rbPair.put("node",record.get("b").asMap());
             rbPair.put("label",record.get("b").asNode().labels());
             finalResult.add(rbPair);
+        }
+        return finalResult;
+    }
+
+    //get single geometry
+    public static List<Map<String, Object>> getGeometry(String label,String id){
+        List<Map<String, Object>> finalResult = new ArrayList<>();
+        String labelid=label+"_id";
+        String cql="MATCH (n:"+label+" {"+labelid+":$id)-[r:has_geometry]->(b) "+
+                "RETURN b";
+        Session session = driver.session();
+        Result result = session.run(cql,parameters("label", label, "id", id));
+        while (result.hasNext()) {
+            Record record = result.next();
+            finalResult.add(record.get("b").asMap());
         }
         return finalResult;
     }

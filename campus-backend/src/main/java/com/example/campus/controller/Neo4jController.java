@@ -19,10 +19,26 @@ public class Neo4jController {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @RequestMapping(value = "/getAllLabel", method = RequestMethod.GET)
-    @ResponseBody
+    @CrossOrigin
     public ArrayList<String> getAllLabel() {
         logger.info("start invoke getAllLabel()");
         return neo4jService.getAllLabel();
+    }
+
+    //get all the nodes when label is "label"
+    @RequestMapping(value = "/getNodeByLabel", method = RequestMethod.GET)
+    @CrossOrigin
+    public List<Map<String, Object>> getNodeByLabel(@RequestParam(value = "label") String label) {
+        logger.info("start invoke getNodeByLabel()");
+        return neo4jService.getNodeByLabel(label);
+    }
+
+    //for onlinemap, get the geometry and properties of geo entities by label
+    @RequestMapping(value = "/getNodeAndGeometryByLabel", method = RequestMethod.GET)
+    @CrossOrigin
+    public JSONObject getNodeAndGeometryByLabel(@RequestParam(value = "label") String label) {
+        logger.info("start invoke getNodeAndGeometryByLabel()");
+        return neo4jService.getNodeAndGeometryByLabel(label);
     }
 
     @RequestMapping(value = "/getAllRelationshipType", method = RequestMethod.GET)
@@ -32,7 +48,17 @@ public class Neo4jController {
         return neo4jService.getAllRelationshipType();
     }
 
+    //get single geo-entity node
+    @RequestMapping(value = "/getSingleNode", method = RequestMethod.GET)
+    @ResponseBody
+    @CrossOrigin
+    public List<Map<String, Object>> getSingleNode(@RequestParam(value = "label")String label,@RequestParam(value = "id") String id) {
+        logger.info("start invoke getSingleNode()");
+        return neo4jService.getSingleNode(label,id);
+    }
+
     //get geo-entity node, including building,parkinglot,bus_stop,etc
+    //this one includes a json of guery parameters
     @RequestMapping(value = "/getEntityNode", method = RequestMethod.POST)
     @ResponseBody
     public List<Map<String,Object>> getEntityNode(@RequestParam(value = "nodeType") String nodeType, @RequestBody Map<String, String> parameters) {
@@ -46,6 +72,14 @@ public class Neo4jController {
     public List<Map<String, Object>> getSubGraphA(@RequestParam(value = "label")String label,@RequestParam(value = "id") String id) {
         logger.info("start invoke getSubGraphA()");
         return neo4jService.getSubGraphA(label,id);
+    }
+
+    //get geometry of single geo entity
+    @RequestMapping(value = "/getGeometry", method = RequestMethod.GET)
+    @ResponseBody
+    public List<Map<String, Object>> getGeometry(@RequestParam(value = "label")String label,@RequestParam(value = "id") String id) {
+        logger.info("start invoke getGeometry()");
+        return neo4jService.getGeometry(label,id);
     }
 
     // get bus stop by route
