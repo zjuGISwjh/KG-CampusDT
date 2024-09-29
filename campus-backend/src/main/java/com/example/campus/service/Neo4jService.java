@@ -16,6 +16,7 @@ public interface Neo4jService {
     List<Map<String,Object>> getNode(String nodeType,Map<String, String> parameters);
     List<Map<String, Object>> getSubGraphA(String label,String id);
     List<Map<String, Object>> getGeometry(String label,String id);
-    List<Map<String, Object>> getBusStopByRoute(String route);
+    JSONObject getBusStopByRoute(String route);
     List<Map<String, Object>> getNextStop(String busStopId);
+    List<Map<String, Object>> getParkinglotOnStreet(String street);
 }

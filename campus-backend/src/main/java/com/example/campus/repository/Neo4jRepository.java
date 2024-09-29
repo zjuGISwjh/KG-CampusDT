@@ -75,7 +75,6 @@ public class Neo4jRepository {
                 "OPTIONAL MATCH (a)-[:has_geometry]->(b:"+label+"_geometry) " +
                 "WITH a, b, apoc.convert.fromJsonList(b.coordinates) AS parsedCoordinates " +
                 "RETURN a {    .*}, b {    .*, coordinates: parsedCoordinates};";
-        System.out.println(cql);
         Result result = session.run(cql);
 
         while (result.hasNext()) {
@@ -209,16 +208,30 @@ public class Neo4jRepository {
         return finalResult;
     }
 
-    //get bus stops by route
-    public static List<Map<String, Object>> getBusStopByRoute(String route){
-        List<Map<String, Object>> finalResult = new ArrayList<>();
-        String cql="MATCH (n:bus_stop) WHERE n.route = $route RETURN n";
+    //get bus stops and their geometry by route
+    public static JSONObject getBusStopByRoute(String route){
+        JSONObject finalResult = new JSONObject();
+        ArrayList<Map<String, Object>> features=new ArrayList();
+        //String cql="MATCH (n:bus_stop) WHERE n.route = $route RETURN n";
+        String cql="MATCH (a:bus_stop) WHERE a.route = $route " +
+                "OPTIONAL MATCH (a)-[:has_geometry]->(b:bus_stop_geometry) " +
+                "WITH a, b, apoc.convert.fromJsonList(b.coordinates) AS parsedCoordinates " +
+                "RETURN a {    .*}, b {    .*, coordinates: parsedCoordinates};";
+
+
         Session session = driver.session();
         Result result = session.run(cql,parameters("route", route));
         while (result.hasNext()) {
             Record record = result.next();
-            finalResult.add(record.get("n").asMap());
+            Map<String, Object> pair = new HashMap<>();
+            pair.put("type","Feature");
+            pair.put("id",record.get("a").asMap().get("bus_stop_id"));
+            pair.put("properties", record.get("a").asMap());
+            pair.put("geometry", record.get("b").asMap());
+            features.add(pair);
         }
+        finalResult.put("type","FeatureCollection");
+        finalResult.put("features",features);
         return finalResult;
     }
 
@@ -231,6 +244,19 @@ public class Neo4jRepository {
         while (result.hasNext()) {
             Record record = result.next();
             finalResult.add(record.get("b").asMap());
+        }
+        return finalResult;
+    }
+
+    // get parkinglot on street
+    public static List<Map<String, Object>> getParkinglotOnStreet(String street){
+        List<Map<String, Object>> finalResult = new ArrayList<>();
+        String cql="MATCH (n:parkinglot)-[r:locate_on]->(b:street {name:$streetName}) RETURN n";
+        Session session = driver.session();
+        Result result = session.run(cql,parameters("streetName", street));
+        while (result.hasNext()) {
+            Record record = result.next();
+            finalResult.add(record.get("n").asMap());
         }
         return finalResult;
     }

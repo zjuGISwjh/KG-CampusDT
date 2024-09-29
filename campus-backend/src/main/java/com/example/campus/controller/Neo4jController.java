@@ -61,6 +61,7 @@ public class Neo4jController {
     //this one includes a json of guery parameters
     @RequestMapping(value = "/getEntityNode", method = RequestMethod.POST)
     @ResponseBody
+    @CrossOrigin
     public List<Map<String,Object>> getEntityNode(@RequestParam(value = "nodeType") String nodeType, @RequestBody Map<String, String> parameters) {
         logger.info("start invoke getEntityNode()");
         return neo4jService.getNode(nodeType,parameters);
@@ -69,6 +70,7 @@ public class Neo4jController {
     //get subgraph of (a)-[r]->(b), label and id to determine the specific node A(label,id)
     @RequestMapping(value = "/getSubGraphA", method = RequestMethod.GET)
     @ResponseBody
+    @CrossOrigin
     public List<Map<String, Object>> getSubGraphA(@RequestParam(value = "label")String label,@RequestParam(value = "id") String id) {
         logger.info("start invoke getSubGraphA()");
         return neo4jService.getSubGraphA(label,id);
@@ -77,6 +79,7 @@ public class Neo4jController {
     //get geometry of single geo entity
     @RequestMapping(value = "/getGeometry", method = RequestMethod.GET)
     @ResponseBody
+    @CrossOrigin
     public List<Map<String, Object>> getGeometry(@RequestParam(value = "label")String label,@RequestParam(value = "id") String id) {
         logger.info("start invoke getGeometry()");
         return neo4jService.getGeometry(label,id);
@@ -85,7 +88,8 @@ public class Neo4jController {
     // get bus stop by route
     @RequestMapping(value = "/getBusStopByRoute", method = RequestMethod.GET)
     @ResponseBody
-    public List<Map<String, Object>> getBusStopByRoute(@RequestParam(value = "route")String route) {
+    @CrossOrigin
+    public JSONObject getBusStopByRoute(@RequestParam(value = "route")String route) {
         logger.info("start invoke getBusStopByRoute()");
         return neo4jService.getBusStopByRoute(route);
     }
@@ -93,8 +97,18 @@ public class Neo4jController {
     //get next bus stop
     @RequestMapping(value = "/getNextStop", method = RequestMethod.GET)
     @ResponseBody
+    @CrossOrigin
     public List<Map<String, Object>> getNextStop(@RequestParam(value = "busStopId")String busStopId) {
         logger.info("start invoke getNextStop()");
         return neo4jService.getNextStop(busStopId);
+    }
+
+    // get parkinglot on street
+    @RequestMapping(value = "/getParkinglotOnStreet", method = RequestMethod.GET)
+    @ResponseBody
+    @CrossOrigin
+    public List<Map<String, Object>> getParkinglotOnStreet(@RequestParam(value = "street")String streetName) {
+        logger.info("start invoke getParkinglotOnStreet()");
+        return neo4jService.getParkinglotOnStreet(streetName);
     }
 }
