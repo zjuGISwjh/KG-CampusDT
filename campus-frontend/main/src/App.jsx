@@ -17,6 +17,9 @@ import NodeVisualization from './NodeVisualization';
 import { Card, Descriptions } from 'antd';
 import { useLocation } from 'react-router-dom';
 import BusMap from './BusMap';
+import BusRouteList from './BusRouteList';
+import MapSearchComponent from './MapSearchComponent';
+import BusSearchComponent from './BusSearchComponent';
 
 
 const Home = () => <h2>campus digital twin</h2>;
@@ -39,6 +42,7 @@ const App = () => {
   const [featureLabel, setFeatureLabel] = useState(''); // feature label
   const [featureDetails, setFeatureDetails] = useState(null); // feature properties
   const location = useLocation(); // current route
+  const [busStops,setBusStops]=useState([]);
 
   // node visualization component
   const handleNodeUpdate = (fetchedNodes,label) => {
@@ -96,6 +100,16 @@ useEffect(() => {
     setShowVisualization(false);
   };
 
+  const handleBusMapClick=()=>{
+    setBusStops(null);
+    setShowVisualization(false);
+  }
+
+  const updateBusStops=(busStops)=>{
+    setBusStops(busStops);
+    setShowVisualization(false);
+  };
+
   /**console.log("Nodes:", nodes);
    * console.log("Selected Label:", selectedLabel);
    * console.log("details:", nodeDetails);
@@ -124,29 +138,37 @@ useEffect(() => {
               <Link to="/map" onClick={handleMapClick}>Base Map</Link>
             </Menu.Item>
             <Menu.Item key="3" style={{color:'white'}}>
-              <Link to="/bus" onClick={() => setShowVisualization(false)}>Bus Map</Link>
+              <Link to="/bus" onClick={handleBusMapClick}>Bus Map</Link>
             </Menu.Item>
           </Menu>
         </Header>
         <Layout key={location.pathname}>
           {/* left sider bar */}
-          { location.pathname !== '/bus' && (
+          {/*{ location.pathname !== '/bus' && (*/}
             <Sider width={"20%"}>
-              <div style={{ padding: '20px 20px 0 20px' }}>
-                <Input placeholder="search" prefix={<SearchOutlined />} />
-              </div>
               {location.pathname == '/' && (
-                <div style={{ padding: '0 20px' }}>
+                <div style={{ padding: '20px 20px' }}>
                   <LabelList labels={labels} onLabelClick={handleNodeUpdate} /> {/* render label list */}
                 </div>
               )}
               {location.pathname == '/map' && (
-                <div style={{ padding: '0 20px' }}>
+                <div style={{ padding: '20px 20px' }}>
                   <OnlineMapLabelList labels={labels} onLabelClick={updataFeatureDetails}/> {/* render label list of map */}
+                  {/*<div style={{ padding: '20px 0 0 0' }}>
+                    <Input placeholder="parkinglot" prefix={<SearchOutlined />} />
+                  </div>*/}
+                  <h4>parkinglots on street</h4>
+                  <MapSearchComponent />
+                </div>
+              )}
+              {location.pathname == '/bus' && (
+                <div style={{ padding: '20px 20px' }}>
+                  <h4>next stops</h4>
+                  <BusSearchComponent />
                 </div>
               )}
             </Sider>
-          )}
+          {/*})}*/}
           <Layout style={{ padding: '0'}}>
             <Content
               style={{
@@ -161,7 +183,7 @@ useEffect(() => {
                 <Route path="/" exact component={Home} />
                 // React Router v6
                 <Route path="/map" element={<MyOnlineMap onMapClick={updataFeatureDetails}/>} />
-                <Route path="/bus" element={<BusMap />} />
+                <Route path="/bus" element={<BusMap busStops={busStops}/>} />
               </Routes>
             </Content>
             <Footer style={{ textAlign: 'center', display: 'block', maxHeight: '10%',padding:"10px 50px" }}>
@@ -209,6 +231,9 @@ useEffect(() => {
                   <div>No feature selected</div>
                 )}
               </Card>
+            )}
+            {!collapsed && location.pathname=='/bus' && (     
+                <BusRouteList onLabelClick={updateBusStops}/>
             )}
             </div>
           </Sider>
