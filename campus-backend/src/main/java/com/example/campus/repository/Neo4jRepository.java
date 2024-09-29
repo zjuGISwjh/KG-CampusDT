@@ -248,6 +248,20 @@ public class Neo4jRepository {
         return finalResult;
     }
 
+    // recursively query the remaining stops on the route
+    public static List<Map<String, Object>> getNextStops(String route,String busStopName){
+        List<Map<String, Object>> finalResult = new ArrayList<>();
+        String cql="MATCH (start:bus_stop {name:$busStopName,route:$route})-[:next_stop*]->(next_stops)" +
+                "RETURN next_stops";
+        Session session = driver.session();
+        Result result = session.run(cql,parameters("busStopName", busStopName, "route", route));
+        while (result.hasNext()) {
+            Record record = result.next();
+            finalResult.add(record.get("next_stops").asMap());
+        }
+        return finalResult;
+    }
+
     // get parkinglot on street
     public static List<Map<String, Object>> getParkinglotOnStreet(String street){
         List<Map<String, Object>> finalResult = new ArrayList<>();

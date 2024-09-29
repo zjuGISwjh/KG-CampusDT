@@ -103,6 +103,16 @@ public class Neo4jController {
         return neo4jService.getNextStop(busStopId);
     }
 
+    //get remaining bus stops on the route
+    @RequestMapping(value = "/getNextStops", method = RequestMethod.GET)
+    @ResponseBody
+    @CrossOrigin
+    public List<Map<String, Object>> getNextStops(@RequestParam(value = "route")String route,
+                                                  @RequestParam(value = "busStopName")String busStopName) {
+        logger.info("start invoke getNextStops()");
+        return neo4jService.getNextStops(route,busStopName);
+    }
+
     // get parkinglot on street
     @RequestMapping(value = "/getParkinglotOnStreet", method = RequestMethod.GET)
     @ResponseBody

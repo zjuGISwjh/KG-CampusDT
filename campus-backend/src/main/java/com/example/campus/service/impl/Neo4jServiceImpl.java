@@ -66,6 +66,11 @@ public class Neo4jServiceImpl implements Neo4jService {
     }
 
     @Override
+    public List<Map<String,Object>> getNextStops(String route,String busStopName){
+        return neo4jRepository.getNextStops(route,busStopName);
+    }
+
+    @Override
     public List<Map<String, Object>> getParkinglotOnStreet(String street){
         return neo4jRepository.getParkinglotOnStreet(street);
     }

@@ -18,5 +18,6 @@ public interface Neo4jService {
     List<Map<String, Object>> getGeometry(String label,String id);
     JSONObject getBusStopByRoute(String route);
     List<Map<String, Object>> getNextStop(String busStopId);
+    List<Map<String, Object>> getNextStops(String route,String busStopName);
     List<Map<String, Object>> getParkinglotOnStreet(String street);
 }
