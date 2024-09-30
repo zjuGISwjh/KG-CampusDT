@@ -1,0 +1,354 @@
+{
+	"info": {
+		"_postman_id": "f79d0e4d-57d3-4ada-aa67-54540a32915d",
+		"name": "KGDT",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "16174754"
+	},
+	"item": [
+		{
+			"name": "http://localhost:8083/api/getEntityNode?nodeType=building",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"type\":\"UNIVERSITY\",\r\n    \"start_year\":\"1992\",\r\n    \"end_year\":\"1993\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8083/api/getEntityNode?nodeType=building",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"api",
+						"getEntityNode"
+					],
+					"query": [
+						{
+							"key": "nodeType",
+							"value": "building"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8083/api/getSubGraphA?label=parkinglot&id=26153",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8083/api/getSubGraphA?label=parkinglot&id=26153",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"api",
+						"getSubGraphA"
+					],
+					"query": [
+						{
+							"key": "label",
+							"value": "parkinglot"
+						},
+						{
+							"key": "id",
+							"value": "26153"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://gis.tamu.edu/arcgis/rest/services/TS/TS_Main/MapServer/7/query?where=1=1&outFields=*&f=geojson&&returnGeometry=true",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://gis.tamu.edu/arcgis/rest/services/TS/TS_Main/MapServer/7/query?where=1=1&outFields=*&f=geojson&&returnGeometry=true",
+					"protocol": "https",
+					"host": [
+						"gis",
+						"tamu",
+						"edu"
+					],
+					"path": [
+						"arcgis",
+						"rest",
+						"services",
+						"TS",
+						"TS_Main",
+						"MapServer",
+						"7",
+						"query"
+					],
+					"query": [
+						{
+							"key": "where",
+							"value": "1=1"
+						},
+						{
+							"key": "outFields",
+							"value": "*"
+						},
+						{
+							"key": "f",
+							"value": "geojson"
+						},
+						{
+							"key": null,
+							"value": null
+						},
+						{
+							"key": "returnGeometry",
+							"value": "true"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8083/api/getBusStopByRoute?route=15",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8083/api/getBusStopByRoute?route=15",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"api",
+						"getBusStopByRoute"
+					],
+					"query": [
+						{
+							"key": "route",
+							"value": "15"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8083/api/getNextStop?busStopId=4622",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8083/api/getNextStop?busStopId=4622",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"api",
+						"getNextStop"
+					],
+					"query": [
+						{
+							"key": "busStopId",
+							"value": "4622"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8083/api/getAllLabel",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8083/api/getAllLabel",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"api",
+						"getAllLabel"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8083/api/getNodeByLabel?label=campus",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8083/api/getNodeByLabel?label=campus",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"api",
+						"getNodeByLabel"
+					],
+					"query": [
+						{
+							"key": "label",
+							"value": "campus"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8083/api/getSingleNode?label=parkinglot&id=26331",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8083/api/getSingleNode?label=parkinglot&id=26331",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"api",
+						"getSingleNode"
+					],
+					"query": [
+						{
+							"key": "label",
+							"value": "parkinglot"
+						},
+						{
+							"key": "id",
+							"value": "26331"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8083/api/getNodeAndGeometryByLabel?label=construction",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8083/api/getNodeAndGeometryByLabel?label=construction",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"api",
+						"getNodeAndGeometryByLabel"
+					],
+					"query": [
+						{
+							"key": "label",
+							"value": "construction"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8083/api/getParkinglotOnStreet?street=Research Pw",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8083/api/getParkinglotOnStreet?street=Research Pw",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"api",
+						"getParkinglotOnStreet"
+					],
+					"query": [
+						{
+							"key": "street",
+							"value": "Research Pw"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8083/api/getNextStops?route=08&busStopName=MSC",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8083/api/getNextStops?route=08&busStopName=MSC",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"api",
+						"getNextStops"
+					],
+					"query": [
+						{
+							"key": "route",
+							"value": "08"
+						},
+						{
+							"key": "busStopName",
+							"value": "MSC"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8083/api/getAllRelationshipType",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8083/api/getAllRelationshipType",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"api",
+						"getAllRelationshipType"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
