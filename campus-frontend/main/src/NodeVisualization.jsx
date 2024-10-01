@@ -4,6 +4,71 @@ import * as d3 from 'd3';
 //for knowledge graph visualization
 const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
     const svgRef = useRef();
+    var links;
+    var simulation;
+
+    const drawMenu = (node, menuItems, g) => {
+        // clean menu
+        g.selectAll('.menu-item').remove();
+    
+        const menuRadius = 80;
+        const numItems = menuItems.length;
+        const angleStep = (2 * Math.PI) / numItems;
+        const gap = 0.1;
+    
+        // arx generator
+        const arc = d3.arc()
+            .innerRadius(52)
+            .outerRadius(menuRadius);
+    
+        menuItems.forEach((menuItem, i) => {
+            const startAngle = i * angleStep;
+            const endAngle = (i + 1) * angleStep - gap;
+    
+            // arc shape menu
+            const arcPath = arc({ startAngle, endAngle });
+            var tmp={
+                startAngle: startAngle,
+                endAngle: endAngle
+            };
+            var centroid = arc.centroid(tmp);
+    
+            const itemGroup = g.append('g')
+                .attr('class', 'menu-item')
+                .datum(node)  // bind node to menu item
+                .attr('transform', `translate(${node.x}, ${node.y})`);
+    
+            itemGroup.append('path')
+                .attr('d', arcPath)
+                .attr('fill', '#ffcc00')
+                .on('click', () => {
+                    console.log(`Clicked on menu item: ${menuItem}`);
+                    if(menuItem=='SubGraph'){
+                        console.log("subgraph");
+                        links=fetchSubGraph(node)
+                    }
+                });
+    
+            // add text
+            var str;
+            const deg = (startAngle + endAngle) * 180/ (2 * Math.PI);
+            if ( deg < 90 || deg > 270) {
+                str= 'rotate('+ deg +', '+(centroid[0])+' '+(centroid[1])+ ')'
+              } else {
+                str= 'rotate('+ (deg + 180) +', '+(centroid[0])+' '+(centroid[1])+ ')'
+              }
+
+            itemGroup.append('text')
+                .attr('dy', 5)
+                .attr('text-anchor', 'middle')
+                .attr('transform', str)
+                .attr('x', 0.95*centroid[0] * 1)
+                .attr('y', 0.95*centroid[1] * 1)
+                .text(menuItem);
+        });
+    };
+    
+    
 
     // handle node click
     const handleNodeClick = async(node) => {
@@ -49,6 +114,7 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
             const data = await response.json();
             console.log("Fetched relations:", data);
             drawRelations(data,node);
+            return data;
         } catch (error) {
             console.error('Error fetching relations:', error);
         }
@@ -57,17 +123,52 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
     // draw relationship
     const drawRelations = (data,sourceNode) => {
         const svg = d3.select(svgRef.current);
-    const g = svg.select('g');
+        const g = svg.select('g');
+        // clean target nodes and links
+        g.selectAll('.target-node').remove();
+        g.selectAll('.link').remove();
 
-    const relations = data.map(item => ({
+    console.log("source node")
+    console.log(sourceNode.x)
+    console.log(sourceNode)
+
+    /*const relations = data.map(item => ({
         source: sourceNode.name,
         target: item.node.name,
-    }));
+    }));*/
+
+    const relations = data.map(item => {
+        //console.log("Current item:", item);
+        return {
+            source: sourceNode.name,
+            target: item.node.name,
+        };
+    });
+    
 
     const links = relations.map(r => ({
         source: r.source,
         target: r.target,
     }));
+
+    const targetNodes = data.map(item => ({
+        name: item.node.name,
+        x: Math.random() * svg.node().clientWidth, //random position
+        y: Math.random() * svg.node().clientHeight,
+    }));
+    // target nodes may not have some porperties, after add to nodes, need to update force graph
+    //nodes.push(...targetNodes)
+    //simulation.nodes(nodes); // Update simulation with the new nodes
+    //simulation.alpha(1).restart(); // Restart the simulation
+
+     // draw target node
+     const targetNode = g.selectAll('.target-node')
+     .data(targetNodes)
+     .enter()
+     .append('g')
+     .attr('class', 'target-node')
+     .attr('transform', d => `translate(${d.x}, ${d.y})`);
+
 
     // draw relationship
     const link = g.selectAll('.link')
@@ -76,21 +177,19 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
         .append('line')
         .attr('class', 'link')
         .attr('stroke', '#999')
-        .attr('stroke-width', 2);
-
-    const targetNodes = data.map(item => ({
-        name: item.node.name,
-        x: Math.random() * svg.node().clientWidth, //random position
-        y: Math.random() * svg.node().clientHeight,
-    }));
-
-    // draw target node
-    const targetNode = g.selectAll('.target-node')
-        .data(targetNodes)
-        .enter()
-        .append('g')
-        .attr('class', 'target-node')
-        .attr('transform', d => `translate(${d.x}, ${d.y})`);
+        .attr('stroke-width', 2)
+        .attr('x1', sourceNode.x)
+        .attr('y1', sourceNode.y) 
+        .attr('x2', d => {
+                    //return d.target.x;
+                    const targetNodeData = targetNodes.find(node => node.name === d.target);
+                    return targetNodeData ? targetNodeData.x : 0;
+                }) 
+        .attr('y2', d => {
+                    //return d.target.y;
+                    const targetNodeData = targetNodes.find(node => node.name === d.target);
+                    return targetNodeData ? targetNodeData.y : 0;
+                });
 
     targetNode.append('circle')
         .attr('r', 20)
@@ -100,72 +199,6 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
         .text(d => d.name)
         .attr('dx', 10)
         .attr('dy', 3);
-
-    // update link and node
-    const allNodes = [sourceNode, ...targetNodes];
-    
-    const simulation = d3.forceSimulation(allNodes)
-        .force('link', d3.forceLink().id(d => d.name).distance(50))
-        .force('charge', d3.forceManyBody().strength(-100))
-        .force('center', d3.forceCenter(svg.node().clientWidth / 2, svg.node().clientHeight / 2))
-        .on('tick', () => {
-            link
-                .attr('x1', d => {
-                    return d.source === sourceNode.name ? sourceNode.x : d.source.x;
-                })
-                .attr('y1', d => {
-                    return d.source === sourceNode.name ? sourceNode.y : d.source.y;
-                })
-                .attr('x2', d => {
-                    //return d.target.x;
-                    const targetNodeData = targetNodes.find(node => node.name === d.target);
-                    return targetNodeData ? targetNodeData.x : 0; // add default
-                })
-                .attr('y2', d => {
-                    //return d.target.y;
-                    const targetNodeData = targetNodes.find(node => node.name === d.target);
-                    return targetNodeData ? targetNodeData.y : 0;
-                });
-
-            targetNode.attr('transform', d => `translate(${d.x}, ${d.y})`);
-        });
-        
-        /*const drag = d3.drag()
-        .on('start', (event, d) => {
-            event.sourceEvent.stopPropagation();
-            if (!event.active) simulation.alphaTarget(0.01).restart();
-            d.fx = d.x;
-            d.fy = d.y;
-        })
-        .on('drag', (event, d) => {
-            d.fx = event.x;
-            d.fy = event.y;
-        })
-        .on('end', (event, d) => {
-            if (!event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
-        });*/
-
-        // apply drag to source node
-        /*const sourceNodeGroup = g.selectAll('.source-node')
-            .data([sourceNode])
-            .enter()
-            .append('g')
-            .attr('class', 'source-node')
-            .call(drag);
-
-        sourceNodeGroup.append('circle')
-            .attr('r', 10)
-            .attr('fill', '#69b3a2');
-
-        sourceNodeGroup.append('text')
-            .text(sourceNode.name)
-            .attr('dx', 10)
-            .attr('dy', 3);
-
-        // update source node position
-        sourceNodeGroup.attr('transform', d => `translate(${d.x}, ${d.y})`);*/
         console.log("Drawing relations:", data);
     };
 
@@ -175,6 +208,10 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
         const width = svg.node().clientWidth;
         const height = svg.node().clientHeight;
 
+        const menuItems = ['SubGraph', 'Action 2', 'Action 3'];
+        var links;
+        console.log("nodes1")
+        console.log(nodes)
         // clear all previous content
         svg.selectAll("*").remove();
 
@@ -192,7 +229,7 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
         // group for the elements to zoom
         const g = svg.append('g');
 
-        const simulation = d3.forceSimulation(nodes)
+        simulation = d3.forceSimulation(nodes)
             .force('charge', d3.forceManyBody().strength(-50))  // repulsive force between nodes
             .force('center', d3.forceCenter(width / 2, height / 2))
             .force('collision', d3.forceCollide().radius(30))  // avoid overlap
@@ -203,7 +240,7 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
         const drag = d3.drag()
             .on('start', (event, d) => {
                 event.sourceEvent.stopPropagation();  // stop zoom
-                if (!event.active) simulation.alphaTarget(0.01).restart();  // define alpha
+                if (!event.active) simulation.alphaTarget(0.1).restart();  // define alpha
                 d.fx = d.x;  // fixed x
                 d.fy = d.y;
                 console.log("start")
@@ -211,6 +248,7 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
             .on('drag', (event, d) => {
                 d.fx = event.x;  // update x
                 d.fy = event.y;
+                //drawMenu(d, menuItems, g);  // draw menu every time
                 console.log("drag")
             })
             .on('end', (event, d) => {
@@ -225,11 +263,19 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
             .data(nodes)
             .enter()
             .append('circle')
-            .attr('r', 20)
+            .attr('r', 50)
             .attr('fill', '#69b3a2')
             .on('click', (event, d) =>{ 
                 handleNodeClick(d);
-                showButton(d);
+                drawMenu(d,menuItems,g);
+                console.log("relations")
+                console.log(links);
+                /*console.log("step2")
+                const groups = d3.selectAll('svg g');
+                    groups.each(function() {
+                    console.log(this);
+                });*/
+                //showButton(d);
             })
             .call(drag);
 
@@ -252,32 +298,28 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
             labels
                 .attr('x', d => d.x)
                 .attr('y', d => d.y);
-        }
 
-        //TODO: update source node and button position after drag
+            // update menu item position according to node
+            g.selectAll('.menu-item').each(function(d) {
+                const itemGroup = d3.select(this);
+                itemGroup.attr('transform', `translate(${d.x}, ${d.y})`);
+            });
+            g.selectAll('.link').each(function(d){
+                console.log("moving")
+                console.log(d)
+                const sourceNode = nodes.find(node => node.name === d.source); // Get source node data
+            //const targetNode = nodes.find(node => node.name === d.target); // Get target node data
+            
+                if (sourceNode) {
+                    d3.select(this)
+                        .attr('x1', sourceNode.x)  // Source node x
+                        .attr('y1', sourceNode.y)  // Source node y
+                }
+            })
 
-
-        function showButton(node) {
-            const buttonGroup = g.selectAll('.button-group').data([node]);
-            const buttonEnter = buttonGroup.enter().append('g')
-                .attr('class', 'button-group')
-                .attr('transform', `translate(${node.x + 30}, ${node.y})`)
-                .on('click', (event, d) => fetchSubGraph(d));
-
-            buttonEnter.append('rect')
-                .attr('width', 80)
-                .attr('height', 30)
-                .attr('fill', '#ffcc00');
-
-            buttonEnter.append('text')
-                .attr('x', 40)
-                .attr('y', 20)
-                .attr('text-anchor', 'middle')
-                .text('查看关系');
-
-            // update button position
-            buttonGroup.exit().remove();
-            buttonGroup.attr('transform', `translate(${node.x + 30}, ${node.y})`);
+            // update target node position
+            //g.selectAll('.target-node')
+            //.attr('transform', d => `translate(${d.x}, ${d.y})`);
         }
 
         // clear simulation and svg
