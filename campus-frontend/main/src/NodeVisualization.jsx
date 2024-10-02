@@ -296,6 +296,9 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
                 d.fy = null;
                 console.log("end")
             });
+
+        let isMenuVisible = false; 
+        let currentNode = null;
         // draw node
         const circles = g.selectAll('circle')
         //const circles = svg.selectAll('circle')
@@ -306,11 +309,23 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
             .attr('fill', '#69b3a2')
             .on('click', (event, d) =>{ 
                 handleNodeClick(d);
-                drawMenu(d,menuItems,g);
-                //console.log("relations")
-                //console.log(links);
-                /*console.log("step2")
-                const groups = d3.selectAll('svg g');
+                if (currentNode === d) {
+                    // If the same node is clicked again, toggle the menu visibility
+                    isMenuVisible = !isMenuVisible;
+        
+                    if (!isMenuVisible) {
+                        g.selectAll('.menu-item').remove();
+                    } else {
+                        drawMenu(d, menuItems, g);
+                    }
+                } else {
+                    // If a different node is clicked, show the menu and update currentNode
+                    currentNode = d;
+                    isMenuVisible = true;
+                    drawMenu(d, menuItems, g);
+                }
+                //drawMenu(d,menuItems,g);
+                /*const groups = d3.selectAll('svg g');
                     groups.each(function() {
                     console.log(this);
                 });*/
@@ -355,8 +370,8 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
                     d3.select(this)
                         .attr('x1', sourceNode.x)  // Source node x
                         .attr('y1', sourceNode.y)  // Source node y
-                        .attr('x2', targetNode.x)  // Source node x
-                        .attr('y2', targetNode.y)  // Source node y
+                        .attr('x2', targetNode.x)  // Target node x
+                        .attr('y2', targetNode.y)  // Target node y
                 }
             })
 
