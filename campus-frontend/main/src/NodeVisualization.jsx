@@ -11,14 +11,14 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
         // clean menu
         g.selectAll('.menu-item').remove();
     
-        const menuRadius = 80;
+        const menuRadius = 50;
         const numItems = menuItems.length;
         const angleStep = (2 * Math.PI) / numItems;
         const gap = 0.1;
     
         // arx generator
         const arc = d3.arc()
-            .innerRadius(52)
+            .innerRadius(32)
             .outerRadius(menuRadius);
     
         menuItems.forEach((menuItem, i) => {
@@ -64,7 +64,8 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
                 .attr('transform', str)
                 .attr('x', 0.95*centroid[0] * 1)
                 .attr('y', 0.95*centroid[1] * 1)
-                .text(menuItem);
+                .text(menuItem)
+                .attr('font-size', '8px');
         });
     };
     
@@ -125,81 +126,119 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
         const svg = d3.select(svgRef.current);
         const g = svg.select('g');
         // clean target nodes and links
+        nodes = nodes.filter(node => !node.isTargetNode);  // remove non targetNodes 
         g.selectAll('.target-node').remove();
-        g.selectAll('.link').remove();
+        g.selectAll('.link').remove(); 
 
-    console.log("source node")
-    console.log(sourceNode.x)
-    console.log(sourceNode)
+        console.log("source node")
+        console.log(sourceNode.x)
+        console.log(sourceNode)
 
-    /*const relations = data.map(item => ({
-        source: sourceNode.name,
-        target: item.node.name,
-    }));*/
-
-    const relations = data.map(item => {
-        //console.log("Current item:", item);
-        return {
+        /*const relations = data.map(item => ({
             source: sourceNode.name,
             target: item.node.name,
-        };
-    });
-    
+        }));*/
 
-    const links = relations.map(r => ({
-        source: r.source,
-        target: r.target,
-    }));
+        const relations = data.map(item => {
+            //console.log("Current item:", item);
+            return {
+                source: sourceNode.name,
+                target: item.node.name,
+            };
+        });
+        
 
-    const targetNodes = data.map(item => ({
-        name: item.node.name,
-        x: Math.random() * svg.node().clientWidth, //random position
-        y: Math.random() * svg.node().clientHeight,
-    }));
-    // target nodes may not have some porperties, after add to nodes, need to update force graph
-    //nodes.push(...targetNodes)
-    //simulation.nodes(nodes); // Update simulation with the new nodes
-    //simulation.alpha(1).restart(); // Restart the simulation
+        const links = relations.map(r => ({
+            source: r.source,
+            target: r.target,
+        }));
 
-     // draw target node
-     const targetNode = g.selectAll('.target-node')
-     .data(targetNodes)
-     .enter()
-     .append('g')
-     .attr('class', 'target-node')
-     .attr('transform', d => `translate(${d.x}, ${d.y})`);
+        const distance = 100;
+        const targetNodes = data.map(item => {
+            const angle = Math.random() * 2 * Math.PI;
+            // Calculate x and y positions around the source node
+            const x = sourceNode.x + distance * Math.cos(angle); // Adjust x coordinate
+            const y = sourceNode.y + distance * Math.sin(angle); // Adjust y coordinate
+            return{
+            name: item.node.name,
+            //x: Math.random() * svg.node().clientWidth, //random position
+            //y: Math.random() * svg.node().clientHeight,
+            x:x,
+            y:y,
+            isTargetNode: true, 
+            sourceNodeId: sourceNode.name,
+            }
+        });
+        // target nodes may not have some porperties, after add to nodes, need to update force graph
+        nodes.push(...targetNodes)
+        simulation.nodes(nodes); // Update simulation with the new nodes
+        simulation.alpha(1).restart(); // Restart the simulation
 
 
-    // draw relationship
-    const link = g.selectAll('.link')
-        .data(links)
+        const drag = d3.drag()
+            .on('start', (event, d) => {
+                event.sourceEvent.stopPropagation();  // stop zoom
+                if (!event.active) simulation.alphaTarget(0.01).restart();  // define alpha
+                d.fx = d.x;  // fixed x
+                d.fy = d.y;
+                console.log("start")
+            })
+            .on('drag', (event, d) => {
+                d.fx = event.x;  // update x
+                d.fy = event.y;
+                //drawMenu(d, menuItems, g);  // draw menu every time
+                console.log("drag")
+            })
+            .on('end', (event, d) => {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+                console.log("end")
+            });
+        // draw target node
+        const targetNode = g.selectAll('.target-node')
+        .data(targetNodes)
         .enter()
-        .append('line')
-        .attr('class', 'link')
-        .attr('stroke', '#999')
-        .attr('stroke-width', 2)
-        .attr('x1', sourceNode.x)
-        .attr('y1', sourceNode.y) 
-        .attr('x2', d => {
-                    //return d.target.x;
-                    const targetNodeData = targetNodes.find(node => node.name === d.target);
-                    return targetNodeData ? targetNodeData.x : 0;
-                }) 
-        .attr('y2', d => {
-                    //return d.target.y;
-                    const targetNodeData = targetNodes.find(node => node.name === d.target);
-                    return targetNodeData ? targetNodeData.y : 0;
-                });
+        .append('g')
+        .attr('class', 'target-node')
+        .attr('transform', d => `translate(${d.x}, ${d.y})`)
+        .call(drag)
+        .on('click', (event, d) =>{ 
+            //handleNodeClick(d);
+            //drawMenu(d,menuItems,g);
+        })
 
-    targetNode.append('circle')
-        .attr('r', 20)
-        .attr('fill', '#ff6347');
 
-    targetNode.append('text')
-        .text(d => d.name)
-        .attr('dx', 10)
-        .attr('dy', 3);
-        console.log("Drawing relations:", data);
+        // draw relationship
+        const link = g.selectAll('.link')
+            .data(links)
+            .enter()
+            .append('line')
+            .attr('class', 'link')
+            .attr('stroke', '#999')
+            .attr('stroke-width', 2)
+            .attr('x1', sourceNode.x)
+            .attr('y1', sourceNode.y) 
+            .attr('x2', d => {
+                        //return d.target.x;
+                        const targetNodeData = targetNodes.find(node => node.name === d.target);
+                        return targetNodeData ? targetNodeData.x : 0;
+                    }) 
+            .attr('y2', d => {
+                        //return d.target.y;
+                        const targetNodeData = targetNodes.find(node => node.name === d.target);
+                        return targetNodeData ? targetNodeData.y : 0;
+                    });
+
+        targetNode.append('circle')
+            .attr('r', 30)
+            .attr('fill', '#ff6347');
+
+        targetNode.append('text')
+            .text(d => d.name)
+            .attr('dx', -15)
+            .attr('dy', 3);
+            console.log("Drawing relations:", data);
     };
 
     // initialize the force-directed graph
@@ -240,7 +279,7 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
         const drag = d3.drag()
             .on('start', (event, d) => {
                 event.sourceEvent.stopPropagation();  // stop zoom
-                if (!event.active) simulation.alphaTarget(0.1).restart();  // define alpha
+                if (!event.active) simulation.alphaTarget(0.01).restart();  // define alpha
                 d.fx = d.x;  // fixed x
                 d.fy = d.y;
                 console.log("start")
@@ -263,13 +302,13 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
             .data(nodes)
             .enter()
             .append('circle')
-            .attr('r', 50)
+            .attr('r', 30)
             .attr('fill', '#69b3a2')
             .on('click', (event, d) =>{ 
                 handleNodeClick(d);
                 drawMenu(d,menuItems,g);
-                console.log("relations")
-                console.log(links);
+                //console.log("relations")
+                //console.log(links);
                 /*console.log("step2")
                 const groups = d3.selectAll('svg g');
                     groups.each(function() {
@@ -304,22 +343,26 @@ const NodeVisualization = ({ nodes,label,updateNodeDetails, }) => {
                 const itemGroup = d3.select(this);
                 itemGroup.attr('transform', `translate(${d.x}, ${d.y})`);
             });
+
+
             g.selectAll('.link').each(function(d){
                 console.log("moving")
                 console.log(d)
                 const sourceNode = nodes.find(node => node.name === d.source); // Get source node data
-            //const targetNode = nodes.find(node => node.name === d.target); // Get target node data
+                const targetNode = nodes.find(node => node.name === d.target); // Get target node data
             
-                if (sourceNode) {
+                if (sourceNode&&targetNode) {
                     d3.select(this)
                         .attr('x1', sourceNode.x)  // Source node x
                         .attr('y1', sourceNode.y)  // Source node y
+                        .attr('x2', targetNode.x)  // Source node x
+                        .attr('y2', targetNode.y)  // Source node y
                 }
             })
 
             // update target node position
-            //g.selectAll('.target-node')
-            //.attr('transform', d => `translate(${d.x}, ${d.y})`);
+            g.selectAll('.target-node')
+            .attr('transform', d => `translate(${d.x}, ${d.y})`);
         }
 
         // clear simulation and svg
